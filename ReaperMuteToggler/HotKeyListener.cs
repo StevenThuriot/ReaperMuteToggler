@@ -11,23 +11,23 @@ namespace ReaperMuteToggler
         public int Key { get; }
         public int Id { get; }
 
-        readonly IWin32Window _window;
+        readonly IntPtr _handle;
         bool registered;
 
-        public HotKeyListener(Modifiers modifier, Keys key, IWin32Window window)
+        public HotKeyListener(Modifiers modifier, Keys key, IntPtr handle)
         {
             Modifier = (int) modifier;
             Key = (int) key;
 
-            _window = window;
+            _handle = handle;
 
-            Id = Modifier ^ Key ^ _window.Handle.ToInt32();
+            Id = Modifier ^ Key ^ _handle.ToInt32();
             Register();
         }
 
         public void Register()
         {
-            if (!NativeMethods.RegisterHotKey(_window.Handle, Id, Modifier, Key))
+            if (!NativeMethods.RegisterHotKey(_handle, Id, Modifier, Key))
             {
                 int error = Marshal.GetLastWin32Error();
                 if (error != 0 && error != 1419)
@@ -46,7 +46,7 @@ namespace ReaperMuteToggler
             {
                 registered = false;
 
-                if (!NativeMethods.UnregisterHotKey(_window.Handle, Id))
+                if (!NativeMethods.UnregisterHotKey(_handle, Id))
                 {
                     int error = Marshal.GetLastWin32Error();
                     if (error != 0 && error != 1419)

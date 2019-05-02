@@ -40,6 +40,8 @@ namespace ReaperMuteToggler
             {
                 BaseAddress = new Uri(basePath)
             };
+
+            _httpClient.GetAsync(""); //Warmup
         }
         
         protected override void OnLoad(EventArgs e)
@@ -94,7 +96,7 @@ namespace ReaperMuteToggler
                 ShowInTaskbar = true;
             }
 
-            _listener = new HotKeyListener(_modifier, _key, this);
+            _listener = new HotKeyListener(_modifier, _key, this.Handle);
         }
 
         void Exit(object sender, EventArgs e)
@@ -167,8 +169,8 @@ namespace ReaperMuteToggler
 
         void SetButton_Click(object sender, EventArgs e)
         {
-            _listener.Dispose();
-            _listener = new HotKeyListener(_modifier, _key, this);
+            _listener?.Dispose();
+            _listener = new HotKeyListener(_modifier, _key, this.Handle);
 
             SetButtonColor();
         }
