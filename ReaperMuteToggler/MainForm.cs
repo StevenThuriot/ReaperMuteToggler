@@ -4,6 +4,8 @@ using System.ComponentModel;
 using System.Configuration;
 using System.Diagnostics;
 using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ReaperMuteToggler
@@ -39,17 +41,12 @@ namespace ReaperMuteToggler
                 BaseAddress = new Uri(basePath)
             };
         }
-
+        
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
 
             PrintCurrentKeys();
-
-            Hide();
-            ShowInTaskbar = false;
-
-            _listener = new HotKeyListener(_modifier, _key, this);
 
             _trayIcon = new NotifyIcon()
             {
@@ -63,6 +60,14 @@ namespace ReaperMuteToggler
             };
 
             _trayIcon.DoubleClick += ToggleShow;
+
+            void Listen(object sender, EventArgs activationE)
+            {
+                Activated -= Listen;
+                _listener = new HotKeyListener(_modifier, _key, this);
+            }
+
+            Activated += Listen;
         }
 
         void PrintCurrentKeys()
