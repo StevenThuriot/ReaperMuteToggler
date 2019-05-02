@@ -1,29 +1,25 @@
-﻿using System;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
 namespace ReaperMuteToggler
 {
-    class HotkeyInfo
+    static class HotkeyInfo
     {
-        public Keys Key { get; }
-        public Modifiers Modifiers { get; }
-
-        private HotkeyInfo(IntPtr lParam)
+        public static bool TryGetFromMessage(Message m, out (int key, int modifiers) output)
         {
-            var lpInt = (int)lParam;
-            Key = (Keys)((lpInt >> 16) & 0xFFFF);
-            Modifiers = (Modifiers)(lpInt & 0xFFFF);
-        }
+            if (m.Msg == 0x0312)
+            {
+                var lpInt = (int)m.LParam;
+                var Key = ((lpInt >> 16) & 0xFFFF);
+                var Modifiers = (lpInt & 0xFFFF);
 
-        public static HotkeyInfo GetFromMessage(Message m)
-        {
-            return !IsHotkeyMessage(m) ? null : new HotkeyInfo(m.LParam);
-        }
-
-        const int WM_HOTKEY_MSG_ID = 0x0312;
-        public static bool IsHotkeyMessage(Message m)
-        {
-            return m.Msg == WM_HOTKEY_MSG_ID;
+                output = (Key, Modifiers);
+                return true;
+            }
+            else
+            {
+                output = default;
+                return false;
+            }
         }
     }
 }

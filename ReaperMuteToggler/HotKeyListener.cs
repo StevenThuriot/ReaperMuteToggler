@@ -12,11 +12,15 @@ namespace ReaperMuteToggler
         public int Id { get; }
 
         readonly IntPtr _handle;
-        bool registered;
+        readonly Action _do;
 
-        public HotKeyListener(Modifiers modifier, Keys key, IntPtr handle)
+        bool registered;        
+
+        public HotKeyListener(Modifiers modifier, Keys key, IntPtr handle, Action @do)
         {
-            Modifier = (int) modifier;
+            _do = @do;
+
+            Modifier = (int)modifier;
             Key = (int) key;
 
             _handle = handle;
@@ -72,6 +76,17 @@ namespace ReaperMuteToggler
         void Dispose(bool disposing)
         {
             Unregister();
+        }
+
+        public bool TryHandle(int key, int modifiers)
+        {
+            if (key == Key && Modifier == modifiers)
+            {
+                _do();
+                return true;
+            }
+
+            return false;
         }
     }
 }

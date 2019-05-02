@@ -96,7 +96,7 @@ namespace ReaperMuteToggler
                 ShowInTaskbar = true;
             }
 
-            _listener = new HotKeyListener(_modifier, _key, this.Handle);
+            _listener = new HotKeyListener(_modifier, _key, Handle, HandleShortcut);
         }
 
         void Exit(object sender, EventArgs e)
@@ -119,25 +119,33 @@ namespace ReaperMuteToggler
 
         protected override void WndProc(ref Message m)
         {
-            var hotkeyInfo = HotkeyInfo.GetFromMessage(m);
-            if (hotkeyInfo != null) HotkeyProc(hotkeyInfo);
+            if (HotkeyInfo.TryGetFromMessage(m, out var info))
+            {
+                if (_listener.TryHandle(info.key, info.modifiers))
+                {
+                    Debug.WriteLine($"Listener {_listener.Id} handled the message");
+                }
+            }
+
             base.WndProc(ref m);
         }
 
-        async void HotkeyProc(HotkeyInfo hotkeyInfo)
+        void HandleShortcut()
         {
-            if (hotkeyInfo.Key != _key || _modifier != hotkeyInfo.Modifiers)
-                return;
-
             var sw = Stopwatch.StartNew();
 
             _trayIcon.Icon = Resources.keyboard_on;
 
-            using (var msg = await _httpClient.GetAsync(_endPoint))
+            async Task CallApi()
             {
-                _trayIcon.Icon = Resources.keyboard_off;
-                Debug.WriteLine($"{(int)msg.StatusCode} {msg.StatusCode} - {sw.ElapsedMilliseconds}ms");
+                using (var msg = await _httpClient.GetAsync(_endPoint))
+                {
+                    _trayIcon.Icon = Resources.keyboard_off;
+                    Debug.WriteLine($"{(int)msg.StatusCode} {msg.StatusCode} - {sw.ElapsedMilliseconds}ms");
+                }
             }
+
+            CallApi();
         }
 
         void ShortcutTextbox_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
@@ -170,7 +178,7 @@ namespace ReaperMuteToggler
         void SetButton_Click(object sender, EventArgs e)
         {
             _listener?.Dispose();
-            _listener = new HotKeyListener(_modifier, _key, this.Handle);
+            _listener = new HotKeyListener(_modifier, _key, Handle, HandleShortcut);
 
             SetButtonColor();
         }
