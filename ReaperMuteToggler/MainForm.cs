@@ -64,7 +64,7 @@ namespace ReaperMuteToggler
             void Listen(object sender, EventArgs activationE)
             {
                 Activated -= Listen;
-                _listener = new HotKeyListener(_modifier, _key, this);
+                ToggleShow(null, null);
             }
 
             Activated += Listen;
@@ -81,6 +81,8 @@ namespace ReaperMuteToggler
 
         void ToggleShow(object sender, EventArgs e)
         {
+            _listener?.Dispose();
+
             if (ShowInTaskbar)
             {
                 Hide();
@@ -91,6 +93,8 @@ namespace ReaperMuteToggler
                 Show();
                 ShowInTaskbar = true;
             }
+
+            _listener = new HotKeyListener(_modifier, _key, this);
         }
 
         void Exit(object sender, EventArgs e)
@@ -108,8 +112,7 @@ namespace ReaperMuteToggler
         {
             e.Cancel = true;
 
-            Hide();
-            ShowInTaskbar = false;
+            ToggleShow(null, null);
         }
 
         protected override void WndProc(ref Message m)
